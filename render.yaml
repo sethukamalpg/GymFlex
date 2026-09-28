@@ -1,0 +1,33 @@
+# Render Blueprint Specification
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: gymflex
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 8080
+      # External MySQL Database configuration (e.g. Aiven, TiDB Cloud, Railway, PlanetScale)
+      # Provide these values in the Render Dashboard when creating the Blueprint service
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      # Admin Credentials for GymFlex Dashboard
+      - key: GYMFLEX_ADMIN_USERNAME
+        value: admin
+      - key: GYMFLEX_ADMIN_PASSWORD
+        value: admin123
+      # Container JVM Memory Settings
+      - key: JAVA_OPTS
+        value: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"

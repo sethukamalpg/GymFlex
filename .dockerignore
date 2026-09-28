@@ -1,0 +1,41 @@
+# Build target and jars
+target/
+*.jar
+*.war
+.mvn/wrapper/maven-wrapper.jar
+
+# Version control
+.git/
+.gitignore
+.gitattributes
+
+# IDE and Editor files
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.settings/
+.classpath
+.project
+.factorypath
+.apt_generated/
+.springBeans
+.sts4-cache/
+
+# OS specific files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs and temp files
+*.log
+logs/
+temp/
+tmp/
+
+# Documentation and CI/CD configs
+*.md
+render.yaml
+Dockerfile*
+.dockerignore
