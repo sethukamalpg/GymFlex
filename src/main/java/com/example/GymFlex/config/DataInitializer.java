@@ -17,9 +17,13 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (planRepository.count() == 0) {
+        if (!planRepository.existsByName("Monthly")) {
             planRepository.save(new Plan("Monthly", 1, 1000.0));
+        }
+        if (!planRepository.existsByName("Quarterly")) {
             planRepository.save(new Plan("Quarterly", 3, 2500.0));
+        }
+        if (!planRepository.existsByName("Yearly")) {
             planRepository.save(new Plan("Yearly", 12, 9000.0));
         }
     }

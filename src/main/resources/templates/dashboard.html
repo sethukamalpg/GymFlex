@@ -15,7 +15,7 @@
     <!-- Main Content -->
     <div class="main-content">
         <!-- Header -->
-        <header th:replace="~{fragments/header :: header('Good Morning, Gym Admin', 'Overview & Daily Activity')}"></header>
+        <header th:replace="~{fragments/header :: header('Good Morning, ' + (session.loggedInUser != null ? session.loggedInUser : 'Gym Admin'), 'Overview & Daily Activity')}"></header>
 
         <main class="content-body">
             <!-- Flash Notifications -->

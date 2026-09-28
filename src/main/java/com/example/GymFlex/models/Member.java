@@ -6,8 +6,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 
 @Entity
 @Table(name = "members")
@@ -17,16 +15,12 @@ public class Member {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Name is required")
     @Column(nullable = false)
     private String name;
 
-    @NotBlank(message = "Phone is required")
     @Column(nullable = false, unique = true)
     private String phone;
 
-    @NotBlank(message = "Email is required")
-    @Email(message = "Invalid email format")
     @Column(nullable = false)
     private String email;
 

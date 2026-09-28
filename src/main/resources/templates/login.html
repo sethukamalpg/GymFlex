@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — GymFlex</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .login-page-wrapper {
+            min-height: 100vh;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            position: relative;
+            background: linear-gradient(rgba(11, 15, 23, 0.72), rgba(11, 15, 23, 0.85)), url('/images/gym-background.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 440px;
+            background: rgba(19, 25, 38, 0.88);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: var(--radius-lg);
+            padding: 2.75rem 2.25rem;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.65), 0 0 30px rgba(16, 185, 129, 0.15);
+            text-align: center;
+            position: relative;
+            z-index: 2;
+            animation: fadeInCard 0.5s ease-out;
+        }
+
+        @keyframes fadeInCard {
+            from {
+                opacity: 0;
+                transform: translateY(12px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .login-brand-icon {
+            width: 52px;
+            height: 52px;
+            margin: 0 auto 1.25rem;
+            background: linear-gradient(135deg, var(--primary), #059669);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            box-shadow: 0 0 25px var(--primary-glow);
+        }
+
+        .login-brand-icon svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .login-title {
+            font-size: 1.85rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: #fff;
+            margin-bottom: 0.35rem;
+        }
+
+        .login-title span {
+            color: var(--primary);
+        }
+
+        .login-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+
+        .login-input-group {
+            position: relative;
+            margin-bottom: 1.25rem;
+            text-align: left;
+        }
+
+        .login-input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            color: var(--text-muted);
+            pointer-events: none;
+            transition: var(--transition);
+        }
+
+        .login-form-control {
+            width: 100%;
+            padding: 0.85rem 1rem 0.85rem 2.75rem;
+            background: rgba(11, 15, 23, 0.7);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.925rem;
+            transition: var(--transition);
+        }
+
+        .login-form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(11, 15, 23, 0.95);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .login-form-control:focus + .login-input-icon {
+            color: var(--primary);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 0.9rem;
+            font-size: 1rem;
+            font-weight: 700;
+            margin-top: 1rem;
+            letter-spacing: 0.5px;
+        }
+
+        .login-footer-text {
+            margin-top: 1.75rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            letter-spacing: 0.25px;
+        }
+
+        .login-demo-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-top: 0.75rem;
+            padding: 0.35rem 0.85rem;
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            border-radius: var(--radius-full);
+            color: var(--primary-light);
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-page-wrapper">
+    <div class="login-card">
+        <!-- Logo -->
+        <div class="login-brand-icon">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+        </div>
+
+        <h1 class="login-title">GYM<span>FLEX</span></h1>
+        <p class="login-subtitle">Gym Membership & Attendance Tracker</p>
+
+        <!-- Error Notification -->
+        <div th:if="${error}" class="alert alert-error" style="text-align: left; padding: 0.75rem 1rem; margin-bottom: 1.25rem;">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 18px; height: 18px;">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            <span th:text="${error}">Invalid username or password.</span>
+        </div>
+
+        <!-- Success/Logout Notification -->
+        <div th:if="${successMessage}" class="alert alert-success" style="text-align: left; padding: 0.75rem 1rem; margin-bottom: 1.25rem;">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 18px; height: 18px;">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span th:text="${successMessage}">Logged out successfully.</span>
+        </div>
+
+        <!-- Login Form -->
+        <form th:action="@{/login}" method="post">
+            <!-- Username Input -->
+            <div class="login-input-group">
+                <input type="text" 
+                       id="username" 
+                       name="username" 
+                       th:value="${username}" 
+                       class="login-form-control" 
+                       placeholder="Email / Username" 
+                       required 
+                       autofocus>
+                <div class="login-input-icon">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Password Input -->
+            <div class="login-input-group">
+                <input type="password" 
+                       id="password" 
+                       name="password" 
+                       class="login-form-control" 
+                       placeholder="Password" 
+                       required>
+                <div class="login-input-icon">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Login Button -->
+            <button type="submit" class="btn btn-primary login-btn">
+                <span>LOGIN</span>
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+            </button>
+        </form>
+
+        <!-- Subtext -->
+        <div class="login-footer-text">
+            Gym Management System
+        </div>
+
+        <div class="login-demo-pill">
+            <span>Demo: <strong>admin</strong> / <strong>admin123</strong></span>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

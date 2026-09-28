@@ -14,8 +14,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
-import com.example.GymFlex.controller.PageController;
 import com.example.GymFlex.models.Member;
 import com.example.GymFlex.models.Plan;
 import com.example.GymFlex.repository.CheckInRepository;
@@ -31,10 +31,7 @@ public class GymFlexThymeleafPageTests {
     private MockMvc mockMvc;
 
     @Autowired
-    private org.springframework.web.context.WebApplicationContext webApplicationContext;
-
-    @Autowired
-    private PageController pageController;
+    private WebApplicationContext webApplicationContext;
 
     @Autowired
     private MemberService memberService;
@@ -65,36 +62,80 @@ public class GymFlexThymeleafPageTests {
     }
 
     @Test
-    @DisplayName("GET / returns index view")
-    void testHomePage() throws Exception {
+    @DisplayName("GET / returns login view when unauthenticated")
+    void testLoginPage() throws Exception {
         mockMvc.perform(get("/"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("index"))
-                .andExpect(model().attributeExists("totalMembers", "activeMembers", "todayCheckIns"));
+                .andExpect(view().name("login"));
     }
 
     @Test
-    @DisplayName("GET /dashboard returns dashboard view with metrics")
-    void testDashboardPage() throws Exception {
+    @DisplayName("POST /login with valid credentials redirects to /dashboard")
+    void testLoginSuccess() throws Exception {
+        mockMvc.perform(post("/login")
+                .param("username", "admin")
+                .param("password", "admin123"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/dashboard"));
+    }
+
+    @Test
+    @DisplayName("POST /login with invalid credentials stays on login page with error")
+    void testLoginFailure() throws Exception {
+        mockMvc.perform(post("/login")
+                .param("username", "admin")
+                .param("password", "wrongpass"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("login"))
+                .andExpect(model().attributeExists("error"));
+    }
+
+    @Test
+    @DisplayName("GET /dashboard redirects to /?error=unauthorized when unauthenticated")
+    void testDashboardProtectionUnauthenticated() throws Exception {
         mockMvc.perform(get("/dashboard"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/?error=unauthorized"));
+    }
+
+    @Test
+    @DisplayName("GET /dashboard returns dashboard view when authenticated")
+    void testDashboardPageAuthenticated() throws Exception {
+        mockMvc.perform(get("/dashboard")
+                .sessionAttr("loggedInUser", "Gym Admin"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("dashboard"))
                 .andExpect(model().attributeExists("totalMembers", "activeMembers", "expiringSoonCount", "todayCheckIns"));
     }
 
     @Test
-    @DisplayName("GET /members returns members view")
+    @DisplayName("POST /logout invalidates session and redirects to /")
+    void testLogout() throws Exception {
+        mockMvc.perform(post("/logout")
+                .sessionAttr("loggedInUser", "Gym Admin"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/"));
+    }
+
+    @Test
+    @DisplayName("GET /members returns members view when authenticated")
     void testMembersPage() throws Exception {
-        mockMvc.perform(get("/members"))
+        mockMvc.perform(get("/members")
+                .sessionAttr("loggedInUser", "Gym Admin"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("members"))
                 .andExpect(model().attributeExists("members"));
     }
 
     @Test
-    @DisplayName("GET /members/add returns add-member form view")
+    @DisplayName("GET /members/add returns add-member form view with plans")
     void testAddMemberPage() throws Exception {
-        mockMvc.perform(get("/members/add"))
+        planService.createPlan(new Plan("Monthly", 1, 1000.0));
+        planService.createPlan(new Plan("Quarterly", 3, 2500.0));
+        planService.createPlan(new Plan("Yearly", 12, 9000.0));
+
+        mockMvc.perform(get("/members/add")
+                .sessionAttr("loggedInUser", "Gym Admin"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("add-member"))
                 .andExpect(model().attributeExists("registerRequest", "plans"));
@@ -103,9 +144,10 @@ public class GymFlexThymeleafPageTests {
     @Test
     @DisplayName("POST /members/add submits form and redirects to member profile")
     void testSubmitAddMember() throws Exception {
-        Plan plan = planService.createPlan(new Plan("Monthly", 1, 1000.0));
+        Plan plan = planService.createPlan(new Plan("Yearly", 12, 9000.0));
 
         mockMvc.perform(post("/members/add")
+                .sessionAttr("loggedInUser", "Gym Admin")
                 .param("name", "Sethu Kamal")
                 .param("phone", "9876543210")
                 .param("email", "sethu@gmail.com")
@@ -120,7 +162,8 @@ public class GymFlexThymeleafPageTests {
         Plan plan = planService.createPlan(new Plan("Monthly", 1, 1000.0));
         Member member = memberService.registerMember("Sethu", "9876543210", "sethu@gmail.com", plan.getId());
 
-        mockMvc.perform(get("/members/" + member.getId()))
+        mockMvc.perform(get("/members/" + member.getId())
+                .sessionAttr("loggedInUser", "Gym Admin"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("member-details"))
                 .andExpect(model().attributeExists("member", "membership", "attendanceCount", "checkIns", "membershipStatus"));
@@ -133,6 +176,7 @@ public class GymFlexThymeleafPageTests {
         Member member = memberService.registerMember("Sethu", "9876543210", "sethu@gmail.com", plan.getId());
 
         mockMvc.perform(post("/members/" + member.getId() + "/checkin")
+                .sessionAttr("loggedInUser", "Gym Admin")
                 .param("redirectUrl", "/members"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/members"))
@@ -142,10 +186,11 @@ public class GymFlexThymeleafPageTests {
     @Test
     @DisplayName("POST /members/{id}/renew renews plan and redirects")
     void testRenewAction() throws Exception {
-        Plan plan = planService.createPlan(new Plan("Monthly", 1, 1000.0));
+        Plan plan = planService.createPlan(new Plan("Yearly", 12, 9000.0));
         Member member = memberService.registerMember("Sethu", "9876543210", "sethu@gmail.com", plan.getId());
 
         mockMvc.perform(post("/members/" + member.getId() + "/renew")
+                .sessionAttr("loggedInUser", "Gym Admin")
                 .param("redirectUrl", "/members"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/members"))
@@ -153,9 +198,14 @@ public class GymFlexThymeleafPageTests {
     }
 
     @Test
-    @DisplayName("GET /plans returns plans view with dynamic plan cards")
+    @DisplayName("GET /plans returns plans view with all plans including Yearly")
     void testPlansPage() throws Exception {
-        mockMvc.perform(get("/plans"))
+        planService.createPlan(new Plan("Monthly", 1, 1000.0));
+        planService.createPlan(new Plan("Quarterly", 3, 2500.0));
+        planService.createPlan(new Plan("Yearly", 12, 9000.0));
+
+        mockMvc.perform(get("/plans")
+                .sessionAttr("loggedInUser", "Gym Admin"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("plans"))
                 .andExpect(model().attributeExists("plans"));
@@ -164,7 +214,8 @@ public class GymFlexThymeleafPageTests {
     @Test
     @DisplayName("GET /members/expiring returns expiring-members view")
     void testExpiringMembersPage() throws Exception {
-        mockMvc.perform(get("/members/expiring"))
+        mockMvc.perform(get("/members/expiring")
+                .sessionAttr("loggedInUser", "Gym Admin"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("expiring-members"))
                 .andExpect(model().attributeExists("expiringMemberships"));
@@ -173,7 +224,8 @@ public class GymFlexThymeleafPageTests {
     @Test
     @DisplayName("GET /attendance returns attendance tracker view")
     void testAttendancePage() throws Exception {
-        mockMvc.perform(get("/attendance"))
+        mockMvc.perform(get("/attendance")
+                .sessionAttr("loggedInUser", "Gym Admin"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("attendance"))
                 .andExpect(model().attributeExists("todayCheckIns", "monthCheckIns", "recentCheckIns", "members"));

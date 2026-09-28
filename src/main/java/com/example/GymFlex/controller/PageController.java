@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import jakarta.servlet.http.HttpSession;
 
 import com.example.GymFlex.dto.MemberListItemDto;
 import com.example.GymFlex.dto.RegisterMemberRequest;
@@ -33,18 +36,72 @@ public class PageController {
     private final MemberService memberService;
     private final PlanService planService;
 
+    @Value("${gymflex.admin.username:admin}")
+    private String adminUsername;
+
+    @Value("${gymflex.admin.password:admin123}")
+    private String adminPassword;
+
     public PageController(MemberService memberService, PlanService planService) {
         this.memberService = memberService;
         this.planService = planService;
     }
 
-    // 1. Landing Page
+    // 1. Login Page (Root URL)
     @GetMapping("/")
-    public String home(Model model) {
-        model.addAttribute("totalMembers", memberService.getMemberCount());
-        model.addAttribute("activeMembers", memberService.getActiveMembershipCount());
-        model.addAttribute("todayCheckIns", memberService.getTodayCheckInCount());
-        return "index";
+    public String home(
+            @RequestParam(value = "error", required = false) String error,
+            HttpSession session,
+            Model model) {
+
+        if (session != null && session.getAttribute("loggedInUser") != null) {
+            return "redirect:/dashboard";
+        }
+
+        if ("unauthorized".equals(error)) {
+            model.addAttribute("error", "Please login to access the dashboard.");
+        }
+
+        return "login";
+    }
+
+    // 1b. Process Login
+    @PostMapping("/login")
+    public String login(
+            @RequestParam("username") String username,
+            @RequestParam("password") String password,
+            HttpSession session,
+            Model model) {
+
+        if (username != null && adminUsername.equals(username.trim()) && adminPassword.equals(password)) {
+            session.setAttribute("loggedInUser", "Gym Admin");
+            session.setAttribute("username", username);
+            session.setAttribute("userRole", "System Manager");
+            return "redirect:/dashboard";
+        }
+
+        model.addAttribute("error", "Invalid username or password.");
+        model.addAttribute("username", username);
+        return "login";
+    }
+
+    // 1c. Process Logout
+    @GetMapping("/logout")
+    public String logoutGet(HttpSession session, RedirectAttributes redirectAttributes) {
+        if (session != null) {
+            session.invalidate();
+        }
+        redirectAttributes.addFlashAttribute("successMessage", "You have been logged out successfully.");
+        return "redirect:/";
+    }
+
+    @PostMapping("/logout")
+    public String logoutPost(HttpSession session, RedirectAttributes redirectAttributes) {
+        if (session != null) {
+            session.invalidate();
+        }
+        redirectAttributes.addFlashAttribute("successMessage", "You have been logged out successfully.");
+        return "redirect:/";
     }
 
     // 2. Main Dashboard

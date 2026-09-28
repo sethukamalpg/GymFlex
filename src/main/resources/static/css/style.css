@@ -249,6 +249,64 @@ body {
     font-weight: 500;
 }
 
+.logout-icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.logout-icon-btn:hover {
+    color: var(--accent-red);
+    background: var(--accent-red-bg);
+}
+
+.logout-icon-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+.sidebar-logout-form {
+    margin-top: 0.75rem;
+}
+
+.sidebar-logout-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1rem;
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: var(--radius-md);
+    color: #fca5a5;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: var(--transition);
+}
+
+.sidebar-logout-btn:hover {
+    background: rgba(239, 68, 68, 0.18);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.sidebar-logout-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+
 /* ==========================================================================
    Header Styling
    ========================================================================== */
