@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Members — GymFlex</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="app-wrapper">
+    <!-- Sidebar -->
+    <aside th:replace="~{fragments/sidebar :: sidebar}"></aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <header th:replace="~{fragments/header :: header('Members Directory', 'Manage gym members, check-ins, and renewals')}"></header>
+
+        <main class="content-body">
+            <!-- Flash Notifications -->
+            <div th:if="${successMessage}" class="alert alert-success">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span th:text="${successMessage}">Success message</span>
+            </div>
+
+            <div th:if="${errorMessage}" class="alert alert-error">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span th:text="${errorMessage}">Error message</span>
+            </div>
+
+            <div class="gym-card">
+                <!-- Search & Actions Bar -->
+                <div class="card-header-flex" style="flex-wrap: wrap; gap: 1rem;">
+                    <div style="flex: 1; min-width: 260px; max-width: 450px;">
+                        <input type="text" id="memberSearchInput" class="form-control" placeholder="Search members by name, phone, email, or plan...">
+                    </div>
+                    <a th:href="@{/members/add}" class="btn btn-primary">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                        </svg>
+                        <span>+ Add Member</span>
+                    </a>
+                </div>
+
+                <!-- Members Table -->
+                <div class="table-responsive">
+                    <table id="membersTable" class="gym-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>Email</th>
+                                <th>Plan</th>
+                                <th>Expiry Date</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="m : ${members}">
+                                <td th:text="${m.id}" style="color: var(--text-muted); font-weight: 600;">1</td>
+                                <td>
+                                    <a th:href="@{/members/{id}(id=${m.id})}" class="text-primary-bold" th:text="${m.name}" style="text-decoration: none;">Name</a>
+                                </td>
+                                <td th:text="${m.phone}">Phone</td>
+                                <td th:text="${m.email}">Email</td>
+                                <td>
+                                    <span class="badge" style="background: rgba(59, 130, 246, 0.1); color:#60a5fa;" th:text="${m.planName}">Monthly</span>
+                                </td>
+                                <td>
+                                    <span th:if="${m.expiryDate != null}" th:text="${#temporals.format(m.expiryDate, 'dd-MM-yyyy')}">Date</span>
+                                    <span th:if="${m.expiryDate == null}" style="color: var(--text-muted);">-</span>
+                                </td>
+                                <td>
+                                    <!-- Status Badges -->
+                                    <span th:if="${m.status == 'ACTIVE'}" class="badge badge-active">
+                                        <span class="badge-dot"></span> ACTIVE
+                                    </span>
+                                    <span th:if="${m.status == 'EXPIRING_SOON'}" class="badge badge-warning">
+                                        <span class="badge-dot"></span> EXPIRING SOON
+                                    </span>
+                                    <span th:if="${m.status == 'EXPIRED'}" class="badge badge-expired">
+                                        <span class="badge-dot"></span> EXPIRED
+                                    </span>
+                                    <span th:if="${m.status == 'NO_MEMBERSHIP'}" class="badge" style="background: rgba(100, 116, 139, 0.15); color: #94a3b8;">
+                                        NO PLAN
+                                    </span>
+                                </td>
+                                <td style="text-align: right;">
+                                    <div class="action-buttons-group" style="justify-content: flex-end;">
+                                        <!-- View Details -->
+                                        <a th:href="@{/members/{id}(id=${m.id})}" class="btn btn-secondary btn-sm" title="View Profile">
+                                            View
+                                        </a>
+
+                                        <!-- Quick Check-in -->
+                                        <form th:action="@{/members/{id}/checkin(id=${m.id})}" method="post" style="display:inline;">
+                                            <input type="hidden" name="redirectUrl" value="/members">
+                                            <button type="submit" class="btn btn-primary btn-sm" title="Record daily check-in">
+                                                Check In
+                                            </button>
+                                        </form>
+
+                                        <!-- Renew Membership -->
+                                        <form th:action="@{/members/{id}/renew(id=${m.id})}" method="post" style="display:inline;" onsubmit="return confirmAction('Renew membership for ' + this.getAttribute('data-name') + '?');" th:data-name="${m.name}">
+                                            <input type="hidden" name="redirectUrl" value="/members">
+                                            <button type="submit" class="btn btn-warning btn-sm" title="Renew plan (extends from expiry)">
+                                                Renew
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(members)}">
+                                <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 3rem;">
+                                    No members found. Click <strong>+ Add Member</strong> to register the first member.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="searchEmptyNotice" style="display: none; text-align: center; color: var(--text-muted); padding: 2rem;">
+                    No members match your search criteria.
+                </div>
+            </div>
+        </main>
+
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </div>
+</div>
+
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

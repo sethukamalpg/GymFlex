@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — GymFlex</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="app-wrapper">
+    <!-- Sidebar -->
+    <aside th:replace="~{fragments/sidebar :: sidebar}"></aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <header th:replace="~{fragments/header :: header('Good Morning, Gym Admin', 'Overview & Daily Activity')}"></header>
+
+        <main class="content-body">
+            <!-- Flash Notifications -->
+            <div th:if="${successMessage}" class="alert alert-success">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span th:text="${successMessage}">Success message</span>
+            </div>
+
+            <div th:if="${errorMessage}" class="alert alert-error">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span th:text="${errorMessage}">Error message</span>
+            </div>
+
+            <!-- Metrics Cards Grid -->
+            <div class="metrics-grid">
+                <div class="metric-card emerald">
+                    <div class="metric-icon-box emerald">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </div>
+                    <div class="metric-details">
+                        <div class="metric-label">Total Members</div>
+                        <div class="metric-value" th:text="${totalMembers}">0</div>
+                    </div>
+                </div>
+
+                <div class="metric-card blue">
+                    <div class="metric-icon-box blue">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div class="metric-details">
+                        <div class="metric-label">Active Memberships</div>
+                        <div class="metric-value" th:text="${activeMembers}">0</div>
+                    </div>
+                </div>
+
+                <div class="metric-card orange">
+                    <div class="metric-icon-box orange">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div class="metric-details">
+                        <div class="metric-label">Expiring Soon (7d)</div>
+                        <div class="metric-value" th:text="${expiringSoonCount}">0</div>
+                    </div>
+                </div>
+
+                <div class="metric-card emerald">
+                    <div class="metric-icon-box emerald">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                        </svg>
+                    </div>
+                    <div class="metric-details">
+                        <div class="metric-label">Today's Check-ins</div>
+                        <div class="metric-value" th:text="${todayCheckIns}">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Two-Column Grid: Expiring Soon & Recent Check-ins -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
+                
+                <!-- Membership Expiring Soon Card -->
+                <div class="gym-card">
+                    <div class="card-header-flex">
+                        <div class="card-title">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            <span>Memberships Expiring Soon</span>
+                        </div>
+                        <a th:href="@{/members/expiring}" class="btn btn-secondary btn-sm">View All</a>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="gym-table">
+                            <thead>
+                                <tr>
+                                    <th>Member</th>
+                                    <th>Plan</th>
+                                    <th>Expiry Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="ms : ${expiringMemberships}">
+                                    <td>
+                                        <a th:href="@{/members/{id}(id=${ms.member.id})}" class="text-primary-bold" th:text="${ms.member.name}" style="text-decoration:none;">Name</a>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted);" th:text="${ms.member.phone}">Phone</div>
+                                    </td>
+                                    <td>
+                                        <span class="badge" style="background: rgba(59, 130, 246, 0.1); color:#60a5fa;" th:text="${ms.plan.name}">Plan</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-warning" th:text="${#temporals.format(ms.expiryDate, 'dd-MM-yyyy')}">Date</span>
+                                    </td>
+                                    <td>
+                                        <form th:action="@{/members/{id}/renew(id=${ms.member.id})}" method="post" style="display:inline;" onsubmit="return confirmAction('Renew this membership? Expiry will extend by plan duration.');">
+                                            <input type="hidden" name="redirectUrl" value="/dashboard">
+                                            <button type="submit" class="btn btn-warning btn-sm">Renew</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(expiringMemberships)}">
+                                    <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                                        No memberships expiring within the next 7 days.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Recent Check-ins Card -->
+                <div class="gym-card">
+                    <div class="card-header-flex">
+                        <div class="card-title">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>Recent Check-ins</span>
+                        </div>
+                        <a th:href="@{/attendance}" class="btn btn-secondary btn-sm">Full Log</a>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="gym-table">
+                            <thead>
+                                <tr>
+                                    <th>Member</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="ci : ${recentCheckIns}">
+                                    <td>
+                                        <a th:href="@{/members/{id}(id=${ci.member.id})}" class="text-primary-bold" th:text="${ci.member.name}" style="text-decoration:none;">Name</a>
+                                    </td>
+                                    <td th:text="${#temporals.format(ci.checkInTime, 'dd MMM yyyy')}">Date</td>
+                                    <td th:text="${#temporals.format(ci.checkInTime, 'hh:mm a')}">Time</td>
+                                    <td>
+                                        <span class="badge badge-active">
+                                            <span class="badge-dot"></span> Recorded
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(recentCheckIns)}">
+                                    <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                                        No check-ins recorded yet today.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </div>
+</div>
+
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

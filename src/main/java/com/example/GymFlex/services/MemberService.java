@@ -2,11 +2,13 @@ package com.example.GymFlex.services;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.GymFlex.dto.MemberListItemDto;
 import com.example.GymFlex.dto.RegisterMemberRequest;
 import com.example.GymFlex.exception.DuplicateResourceException;
 import com.example.GymFlex.exception.MembershipExpiredException;
@@ -180,8 +182,57 @@ public class MemberService {
         return memberRepository.findAll();
     }
 
+    public List<MemberListItemDto> getMembersListDto() {
+        List<Member> members = memberRepository.findAll();
+        List<MemberListItemDto> dtos = new ArrayList<>();
+        for (Member m : members) {
+            Membership ms = membershipRepository.findByMemberId(m.getId()).orElse(null);
+            dtos.add(new MemberListItemDto(m, ms));
+        }
+        return dtos;
+    }
+
     public Member getMemberById(Long memberId) {
         return memberRepository.findById(memberId)
                 .orElseThrow(() -> new ResourceNotFoundException("Member not found with id: " + memberId));
+    }
+
+    public java.util.Optional<Membership> getMembershipByMemberId(Long memberId) {
+        return membershipRepository.findByMemberId(memberId);
+    }
+
+    public List<CheckIn> getRecentCheckIns() {
+        return checkInRepository.findTop10ByOrderByCheckInTimeDesc();
+    }
+
+    public List<CheckIn> getMemberCheckIns(Long memberId) {
+        return checkInRepository.findByMemberIdOrderByCheckInTimeDesc(memberId);
+    }
+
+    public long getMemberCount() {
+        return memberRepository.count();
+    }
+
+    public long getActiveMembershipCount() {
+        return membershipRepository.countByExpiryDateGreaterThanEqual(LocalDate.now());
+    }
+
+    public long getExpiringMembershipCount() {
+        return membershipRepository.countByExpiryDateBetween(
+                LocalDate.now(),
+                LocalDate.now().plusDays(7)
+        );
+    }
+
+    public long getTodayCheckInCount() {
+        LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
+        LocalDateTime startOfTomorrow = LocalDate.now().plusDays(1).atStartOfDay();
+        return checkInRepository.countByCheckInTimeBetween(startOfToday, startOfTomorrow);
+    }
+
+    public long getCurrentMonthCheckInCount() {
+        LocalDateTime startOfMonth = LocalDate.now().withDayOfMonth(1).atStartOfDay();
+        LocalDateTime startOfNextMonth = LocalDate.now().plusMonths(1).withDayOfMonth(1).atStartOfDay();
+        return checkInRepository.countByCheckInTimeBetween(startOfMonth, startOfNextMonth);
     }
 }

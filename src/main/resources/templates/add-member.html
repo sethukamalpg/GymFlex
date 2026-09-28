@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Member — GymFlex</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="app-wrapper">
+    <!-- Sidebar -->
+    <aside th:replace="~{fragments/sidebar :: sidebar}"></aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <header th:replace="~{fragments/header :: header('Register New Member', 'Add a new member and assign an initial membership plan')}"></header>
+
+        <main class="content-body" style="max-width: 720px;">
+            <!-- Flash / Error Notifications -->
+            <div th:if="${errorMessage}" class="alert alert-error">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span th:text="${errorMessage}">Error message</span>
+            </div>
+
+            <div class="gym-card">
+                <div class="card-header-flex">
+                    <div class="card-title">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                        </svg>
+                        <span>Member Registration Form</span>
+                    </div>
+                </div>
+
+                <form th:action="@{/members/add}" th:object="${registerRequest}" method="post">
+                    <!-- Full Name -->
+                    <div class="form-group">
+                        <label class="form-label" for="name">Full Name *</label>
+                        <input type="text" id="name" th:field="*{name}" class="form-control" placeholder="e.g. Sethu Kamal" required>
+                        <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="form-error">Name error</div>
+                    </div>
+
+                    <!-- Phone Number -->
+                    <div class="form-group">
+                        <label class="form-label" for="phone">Phone Number *</label>
+                        <input type="tel" id="phone" th:field="*{phone}" class="form-control" placeholder="e.g. 9876543210" required>
+                        <div th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}" class="form-error">Phone error</div>
+                    </div>
+
+                    <!-- Email Address -->
+                    <div class="form-group">
+                        <label class="form-label" for="email">Email Address *</label>
+                        <input type="email" id="email" th:field="*{email}" class="form-control" placeholder="e.g. sethu@gmail.com" required>
+                        <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="form-error">Email error</div>
+                    </div>
+
+                    <!-- Membership Plan -->
+                    <div class="form-group">
+                        <label class="form-label" for="planId">Select Membership Plan *</label>
+                        <select id="planId" th:field="*{planId}" class="form-control" required>
+                            <option value="" disabled selected>-- Choose a Plan --</option>
+                            <option th:each="p : ${plans}" 
+                                    th:value="${p.id}" 
+                                    th:text="${p.name + ' (' + p.durationMonths + ' Month' + (p.durationMonths > 1 ? 's' : '') + ' - ₹' + #numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT') + ')'}">
+                                Monthly (1 Month - ₹1000)
+                            </option>
+                        </select>
+                        <div th:if="${#fields.hasErrors('planId')}" th:errors="*{planId}" class="form-error">Plan error</div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                        <button type="submit" class="btn btn-primary" style="flex: 1; padding: 0.85rem;">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Register Member</span>
+                        </button>
+                        <a th:href="@{/members}" class="btn btn-secondary" style="padding: 0.85rem 1.5rem;">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </main>
+
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </div>
+</div>
+
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

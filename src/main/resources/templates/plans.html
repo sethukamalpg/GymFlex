@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Membership Plans — GymFlex</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="app-wrapper">
+    <!-- Sidebar -->
+    <aside th:replace="~{fragments/sidebar :: sidebar}"></aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <header th:replace="~{fragments/header :: header('Membership Plans', 'Flexible packages tailored for all fitness goals')}"></header>
+
+        <main class="content-body">
+            <!-- Dynamic Plans Grid -->
+            <div class="plans-grid">
+                <div th:each="plan : ${plans}" class="plan-card" th:classappend="${plan.durationMonths == 3} ? 'featured' : ''">
+                    <span th:if="${plan.durationMonths == 3}" class="plan-badge">Popular Choice</span>
+                    <span th:if="${plan.durationMonths == 12}" class="plan-badge" style="background:#3b82f6;">Best Value</span>
+
+                    <h3 class="plan-title" th:text="${plan.name}">Monthly Plan</h3>
+                    
+                    <div class="plan-price-box">
+                        <span class="plan-price-currency">₹</span>
+                        <span class="plan-price-amount" th:text="${#numbers.formatDecimal(plan.price, 0, 'COMMA', 0, 'POINT')}">1000</span>
+                        <span class="plan-duration" th:text="${'/ ' + plan.durationMonths + ' Month' + (plan.durationMonths > 1 ? 's' : '')}">/ 1 Month</span>
+                    </div>
+
+                    <ul class="plan-features-list">
+                        <li class="plan-feature-item">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Full access to gym floor & equipment</span>
+                        </li>
+                        <li class="plan-feature-item">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Locker room & shower access</span>
+                        </li>
+                        <li class="plan-feature-item">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span th:text="${plan.durationMonths >= 3 ? 'Free initial fitness & BMI assessment' : 'Basic workout orientation'}">Assessment</span>
+                        </li>
+                        <li class="plan-feature-item">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Daily check-in & attendance tracking</span>
+                        </li>
+                    </ul>
+
+                    <a th:href="@{/members/add}" class="btn btn-primary" style="width: 100%; padding: 0.85rem;">
+                        <span>Enroll Member</span>
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Empty state if database has no plans -->
+            <div th:if="${#lists.isEmpty(plans)}" class="gym-card" style="text-align: center; padding: 4rem 2rem; margin-top: 2rem;">
+                <p style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 1.5rem;">No membership plans found in database.</p>
+            </div>
+        </main>
+
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </div>
+</div>
+
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

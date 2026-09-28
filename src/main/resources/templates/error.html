@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error — GymFlex</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="hero-section">
+    <div class="hero-glow" style="background: radial-gradient(circle, rgba(239, 68, 68, 0.2) 0%, transparent 70%);"></div>
+    <div class="hero-content">
+        <div class="hero-tag" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: #ef4444;">
+            <svg style="width:16px;height:16px" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            Notice
+        </div>
+
+        <h1 class="hero-title" style="font-size: 2.75rem;">Something went wrong</h1>
+        <p class="hero-desc" style="font-size: 1rem;">
+            The requested page or resource could not be found or an error occurred while processing your request.
+        </p>
+
+        <div class="hero-buttons">
+            <a th:href="@{/dashboard}" class="btn btn-primary" style="padding: 0.85rem 1.75rem;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                <span>Back to Dashboard</span>
+            </a>
+            <a th:href="@{/members}" class="btn btn-secondary" style="padding: 0.85rem 1.75rem;">
+                <span>View Members</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

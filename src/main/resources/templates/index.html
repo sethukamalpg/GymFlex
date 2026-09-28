@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GymFlex — Gym Membership and Attendance Tracker</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="hero-section">
+    <div class="hero-glow"></div>
+    <div class="hero-content">
+        <div class="hero-tag">
+            <svg style="width:16px;height:16px" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            Professional Gym Management System
+        </div>
+
+        <h1 class="hero-title">GYM<span>FLEX</span></h1>
+        <h2 style="font-size: 1.5rem; font-weight: 600; color: #cbd5e1; margin-bottom: 1rem;">Gym Membership & Attendance Tracker</h2>
+        <p class="hero-desc">
+            Manage memberships, track attendance, monitor renewals, and keep your gym organized with real-time analytics.
+        </p>
+
+        <div class="hero-buttons">
+            <a th:href="@{/dashboard}" class="btn btn-primary" style="padding: 0.9rem 2rem; font-size: 1rem;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+                <span>Go to Dashboard</span>
+            </a>
+
+            <a th:href="@{/members}" class="btn btn-secondary" style="padding: 0.9rem 2rem; font-size: 1rem;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                <span>View Members</span>
+            </a>
+        </div>
+
+        <div class="hero-stats-row">
+            <div class="hero-stat-item">
+                <div class="hero-stat-number" th:text="${totalMembers}">0</div>
+                <div class="hero-stat-label">Total Members</div>
+            </div>
+            <div class="hero-stat-item">
+                <div class="hero-stat-number" th:text="${activeMembers}">0</div>
+                <div class="hero-stat-label">Active Memberships</div>
+            </div>
+            <div class="hero-stat-item">
+                <div class="hero-stat-number" th:text="${todayCheckIns}">0</div>
+                <div class="hero-stat-label">Today's Check-ins</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>
