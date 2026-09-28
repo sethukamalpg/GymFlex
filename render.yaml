@@ -15,8 +15,9 @@ services:
     envVars:
       - key: PORT
         value: 8080
-      # External MySQL Database configuration (e.g. Aiven, TiDB Cloud, Railway, PlanetScale)
-      # Provide these values in the Render Dashboard when creating the Blueprint service
+      # Database Configuration:
+      # - Leave blank to use the built-in zero-config database (instant deployment)
+      # - Or provide external MySQL/PostgreSQL details (e.g., Aiven, TiDB, Railway)
       - key: SPRING_DATASOURCE_URL
         sync: false
       - key: SPRING_DATASOURCE_USERNAME
