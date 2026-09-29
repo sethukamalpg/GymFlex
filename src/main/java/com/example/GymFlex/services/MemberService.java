@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.GymFlex.dto.MemberListItemDto;
 import com.example.GymFlex.dto.RegisterMemberRequest;
+import com.example.GymFlex.dto.UpdateMemberRequest;
 import com.example.GymFlex.exception.DuplicateResourceException;
 import com.example.GymFlex.exception.MembershipExpiredException;
 import com.example.GymFlex.exception.ResourceNotFoundException;
@@ -83,6 +84,78 @@ public class MemberService {
         membershipRepository.save(membership);
 
         return savedMember;
+    }
+
+    // 1b. Update member with DTO
+    @Transactional
+    public Member updateMember(Long memberId, UpdateMemberRequest request) {
+        return updateMember(
+                memberId,
+                request.getName(),
+                request.getPhone(),
+                request.getEmail(),
+                request.getPlanId()
+        );
+    }
+
+    // 1b. Overloaded update member
+    @Transactional
+    public Member updateMember(
+            Long memberId,
+            String name,
+            String phone,
+            String email,
+            Long planId) {
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new ResourceNotFoundException("Member not found."));
+
+        if (memberRepository.existsByPhoneAndIdNot(phone, memberId)) {
+            throw new DuplicateResourceException("Phone number already exists.");
+        }
+
+        Plan newPlan = planRepository.findById(planId)
+                .orElseThrow(() -> new ResourceNotFoundException("Plan not found with id: " + planId));
+
+        member.setName(name);
+        member.setPhone(phone);
+        member.setEmail(email);
+        Member updatedMember = memberRepository.save(member);
+
+        // Update associated membership
+        Membership membership = membershipRepository.findByMemberId(memberId).orElse(null);
+        if (membership != null) {
+            boolean planChanged = membership.getPlan() == null || !membership.getPlan().getId().equals(newPlan.getId());
+            if (planChanged) {
+                membership.setPlan(newPlan);
+                LocalDate today = LocalDate.now();
+                membership.setStartDate(today);
+                membership.setExpiryDate(today.plusMonths(newPlan.getDurationMonths()));
+                membershipRepository.save(membership);
+            }
+        } else {
+            LocalDate today = LocalDate.now();
+            Membership newMembership = new Membership(updatedMember, newPlan, today, today.plusMonths(newPlan.getDurationMonths()));
+            membershipRepository.save(newMembership);
+        }
+
+        return updatedMember;
+    }
+
+    // 1c. Delete member and associated records safely
+    @Transactional
+    public void deleteMember(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new ResourceNotFoundException("Member not found."));
+
+        // 1. Delete associated CheckIn records
+        checkInRepository.deleteByMemberId(memberId);
+
+        // 2. Delete associated Membership record
+        membershipRepository.deleteByMemberId(memberId);
+
+        // 3. Delete Member
+        memberRepository.delete(member);
     }
 
     // 2. Renew membership
@@ -194,7 +267,7 @@ public class MemberService {
 
     public Member getMemberById(Long memberId) {
         return memberRepository.findById(memberId)
-                .orElseThrow(() -> new ResourceNotFoundException("Member not found with id: " + memberId));
+                .orElseThrow(() -> new ResourceNotFoundException("Member not found."));
     }
 
     public java.util.Optional<Membership> getMembershipByMemberId(Long memberId) {

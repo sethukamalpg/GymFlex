@@ -230,4 +230,85 @@ public class GymFlexThymeleafPageTests {
                 .andExpect(view().name("attendance"))
                 .andExpect(model().attributeExists("todayCheckIns", "monthCheckIns", "recentCheckIns", "members"));
     }
+
+    @Test
+    @DisplayName("GET /members/{id}/edit returns edit-member form view with member data and plans")
+    void testEditMemberPage() throws Exception {
+        Plan plan = planService.createPlan(new Plan("Monthly", 1, 1000.0));
+        Member member = memberService.registerMember("Sethu", "9876543210", "sethu@gmail.com", plan.getId());
+
+        mockMvc.perform(get("/members/" + member.getId() + "/edit")
+                .sessionAttr("loggedInUser", "Gym Admin"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("edit-member"))
+                .andExpect(model().attributeExists("updateRequest", "memberId", "member", "plans"));
+    }
+
+    @Test
+    @DisplayName("GET /members/{id}/edit for non-existent member redirects to /members with error")
+    void testEditNonExistentMemberPage() throws Exception {
+        mockMvc.perform(get("/members/9999/edit")
+                .sessionAttr("loggedInUser", "Gym Admin"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/members"))
+                .andExpect(flash().attribute("errorMessage", "Member not found."));
+    }
+
+    @Test
+    @DisplayName("POST /members/{id}/edit submits valid update and redirects to /members with success")
+    void testSubmitEditMember() throws Exception {
+        Plan plan = planService.createPlan(new Plan("Monthly", 1, 1000.0));
+        Member member = memberService.registerMember("Sethu", "9876543210", "sethu@gmail.com", plan.getId());
+
+        mockMvc.perform(post("/members/" + member.getId() + "/edit")
+                .sessionAttr("loggedInUser", "Gym Admin")
+                .param("name", "Sethu Kamal")
+                .param("phone", "9876543210")
+                .param("email", "newemail@gmail.com")
+                .param("planId", String.valueOf(plan.getId())))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/members"))
+                .andExpect(flash().attribute("successMessage", "Member updated successfully."));
+    }
+
+    @Test
+    @DisplayName("POST /members/{id}/edit with duplicate phone re-renders form with error")
+    void testSubmitEditMemberDuplicatePhone() throws Exception {
+        Plan plan = planService.createPlan(new Plan("Monthly", 1, 1000.0));
+        memberService.registerMember("Sethu", "9876543210", "sethu@gmail.com", plan.getId());
+        Member memberB = memberService.registerMember("Kamal", "9876543211", "kamal@gmail.com", plan.getId());
+
+        mockMvc.perform(post("/members/" + memberB.getId() + "/edit")
+                .sessionAttr("loggedInUser", "Gym Admin")
+                .param("name", "Kamal Updated")
+                .param("phone", "9876543210")
+                .param("email", "kamal@gmail.com")
+                .param("planId", String.valueOf(plan.getId())))
+                .andExpect(status().isOk())
+                .andExpect(view().name("edit-member"))
+                .andExpect(model().attributeExists("errorMessage"));
+    }
+
+    @Test
+    @DisplayName("POST /members/{id}/delete deletes member and redirects to /members with success")
+    void testDeleteMemberAction() throws Exception {
+        Plan plan = planService.createPlan(new Plan("Monthly", 1, 1000.0));
+        Member member = memberService.registerMember("Sethu", "9876543210", "sethu@gmail.com", plan.getId());
+
+        mockMvc.perform(post("/members/" + member.getId() + "/delete")
+                .sessionAttr("loggedInUser", "Gym Admin"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/members"))
+                .andExpect(flash().attribute("successMessage", "Member deleted successfully."));
+    }
+
+    @Test
+    @DisplayName("POST /members/{id}/delete for non-existent member redirects to /members with error")
+    void testDeleteNonExistentMemberAction() throws Exception {
+        mockMvc.perform(post("/members/9999/delete")
+                .sessionAttr("loggedInUser", "Gym Admin"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/members"))
+                .andExpect(flash().attribute("errorMessage", "Member not found."));
+    }
 }

@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -237,5 +238,118 @@ public class GymFlexControllerApiTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].member.id").value(member.getId()));
+    }
+
+    @Test
+    @DisplayName("PUT /api/members/{id} updates member details (200)")
+    void testUpdateMemberApi() throws Exception {
+        Plan plan = planService.createPlan(new Plan("Monthly", 1, 1000.0));
+        Member member = memberService.registerMember("Sethu", "9876543210", "sethu@gmail.com", plan.getId());
+
+        String updateJson = String.format("""
+            {
+                "name": "Sethu Kamal",
+                "phone": "9876543210",
+                "email": "updated@gmail.com",
+                "planId": %d
+            }
+        """, plan.getId());
+
+        mockMvc.perform(put("/api/members/" + member.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(updateJson))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(member.getId()))
+                .andExpect(jsonPath("$.name").value("Sethu Kamal"))
+                .andExpect(jsonPath("$.email").value("updated@gmail.com"));
+    }
+
+    @Test
+    @DisplayName("PUT /api/members/{id} with invalid data returns 400 Bad Request")
+    void testUpdateMemberValidationApi() throws Exception {
+        Plan plan = planService.createPlan(new Plan("Monthly", 1, 1000.0));
+        Member member = memberService.registerMember("Sethu", "9876543210", "sethu@gmail.com", plan.getId());
+
+        String invalidJson = """
+            {
+                "name": "",
+                "phone": "",
+                "email": "not-an-email",
+                "planId": 0
+            }
+        """;
+
+        mockMvc.perform(put("/api/members/" + member.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(invalidJson))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("PUT /api/members/{id} with duplicate phone of another member returns 409 Conflict")
+    void testUpdateMemberDuplicatePhoneApi() throws Exception {
+        Plan plan = planService.createPlan(new Plan("Monthly", 1, 1000.0));
+        memberService.registerMember("Sethu", "9876543210", "sethu@gmail.com", plan.getId());
+        Member memberB = memberService.registerMember("Kamal", "9876543211", "kamal@gmail.com", plan.getId());
+
+        String updateJson = String.format("""
+            {
+                "name": "Kamal",
+                "phone": "9876543210",
+                "email": "kamal@gmail.com",
+                "planId": %d
+            }
+        """, plan.getId());
+
+        mockMvc.perform(put("/api/members/" + memberB.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(updateJson))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error").value("Phone number already exists."));
+    }
+
+    @Test
+    @DisplayName("PUT /api/members/{id} for non-existent member returns 404 Not Found")
+    void testUpdateNonExistentMemberApi() throws Exception {
+        Plan plan = planService.createPlan(new Plan("Monthly", 1, 1000.0));
+
+        String updateJson = String.format("""
+            {
+                "name": "Ghost",
+                "phone": "9999999999",
+                "email": "ghost@gmail.com",
+                "planId": %d
+            }
+        """, plan.getId());
+
+        mockMvc.perform(put("/api/members/9999")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(updateJson))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Member not found."));
+    }
+
+    @Test
+    @DisplayName("DELETE /api/members/{id} successfully deletes member (200)")
+    void testDeleteMemberApi() throws Exception {
+        Plan plan = planService.createPlan(new Plan("Monthly", 1, 1000.0));
+        Member member = memberService.registerMember("Sethu", "9876543210", "sethu@gmail.com", plan.getId());
+
+        mockMvc.perform(delete("/api/members/" + member.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Member deleted successfully."));
+
+        // Verify member is gone
+        mockMvc.perform(get("/api/members/" + member.getId()))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Member not found."));
+    }
+
+    @Test
+    @DisplayName("DELETE /api/members/{id} for non-existent member returns 404 Not Found")
+    void testDeleteNonExistentMemberApi() throws Exception {
+        mockMvc.perform(delete("/api/members/9999"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Member not found."));
     }
 }

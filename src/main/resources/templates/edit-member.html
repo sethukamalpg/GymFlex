@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Member — GymFlex</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="app-wrapper">
+    <!-- Sidebar -->
+    <aside th:replace="~{fragments/sidebar :: sidebar}"></aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <header th:replace="~{fragments/header :: header('Edit Member', 'Update personal details and membership plan')}"></header>
+
+        <main class="content-body" style="max-width: 720px;">
+            <!-- Flash / Error Notifications -->
+            <div th:if="${errorMessage}" class="alert alert-error">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span th:text="${errorMessage}">Error message</span>
+            </div>
+
+            <div class="gym-card">
+                <div class="card-header-flex">
+                    <div class="card-title">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        <span>Edit Member Details</span>
+                    </div>
+                    <span th:if="${member != null}" style="font-size: 0.85rem; color: var(--text-muted);">
+                        ID: <strong th:text="${member.id}" style="color: var(--primary);">#1</strong>
+                    </span>
+                </div>
+
+                <form th:action="@{/members/{id}/edit(id=${memberId})}" th:object="${updateRequest}" method="post">
+                    <!-- Full Name -->
+                    <div class="form-group">
+                        <label class="form-label" for="name">Name *</label>
+                        <input type="text" id="name" th:field="*{name}" class="form-control" placeholder="Sethu Kamal" required>
+                        <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="form-error">Name error</div>
+                    </div>
+
+                    <!-- Phone Number -->
+                    <div class="form-group">
+                        <label class="form-label" for="phone">Phone *</label>
+                        <input type="tel" id="phone" th:field="*{phone}" class="form-control" placeholder="9876543210" required>
+                        <div th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}" class="form-error">Phone error</div>
+                    </div>
+
+                    <!-- Email Address -->
+                    <div class="form-group">
+                        <label class="form-label" for="email">Email *</label>
+                        <input type="email" id="email" th:field="*{email}" class="form-control" placeholder="sethu@gmail.com" required>
+                        <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="form-error">Email error</div>
+                    </div>
+
+                    <!-- Membership Plan -->
+                    <div class="form-group">
+                        <label class="form-label" for="planId">Membership Plan *</label>
+                        <select id="planId" th:field="*{planId}" class="form-control" required>
+                            <option value="" disabled>-- Choose a Plan --</option>
+                            <option th:each="p : ${plans}" 
+                                    th:value="${p.id}" 
+                                    th:selected="${updateRequest.planId != null and updateRequest.planId == p.id}"
+                                    th:text="${p.name + ' (' + p.durationMonths + ' Month' + (p.durationMonths > 1 ? 's' : '') + ' - ₹' + #numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT') + ')'}">
+                                Monthly (1 Month - ₹1000)
+                            </option>
+                        </select>
+                        <div th:if="${#fields.hasErrors('planId')}" th:errors="*{planId}" class="form-error">Plan error</div>
+                        <div style="font-size: 0.775rem; color: var(--text-muted); margin-top: 0.35rem;">
+                            ℹ️ Note: Changing the membership plan starts a new plan period from today.
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                        <button type="submit" class="btn btn-primary" style="flex: 1; padding: 0.85rem;">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Save Changes</span>
+                        </button>
+                        <a th:href="@{/members}" class="btn btn-secondary" style="padding: 0.85rem 1.5rem;">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </main>
+
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </div>
+</div>
+
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import com.example.GymFlex.dto.RegisterMemberRequest;
+import com.example.GymFlex.dto.UpdateMemberRequest;
 import com.example.GymFlex.exception.BadRequestException;
 import com.example.GymFlex.exception.DuplicateResourceException;
 import com.example.GymFlex.exception.MembershipExpiredException;
@@ -224,5 +225,112 @@ public class GymFlexBusinessLogicTests {
 
         long attendance = memberService.getCurrentMonthAttendance(member.getId());
         assertEquals(0, attendance);
+    }
+
+    @Test
+    @DisplayName("Update member details updates name, email and preserves membership when plan unchanged")
+    void testUpdateMemberDetails() {
+        Plan plan = planService.createPlan(new Plan("Monthly", 1, 1000.0));
+        Member member = memberService.registerMember("Sethu", "9876543210", "sethu@gmail.com", plan.getId());
+
+        Membership originalMembership = membershipRepository.findByMemberId(member.getId()).orElseThrow();
+        LocalDate originalExpiry = originalMembership.getExpiryDate();
+
+        UpdateMemberRequest updateReq = new UpdateMemberRequest(
+                "Sethu Kamal", "9876543210", "kamal@gmail.com", plan.getId()
+        );
+
+        Member updated = memberService.updateMember(member.getId(), updateReq);
+        assertEquals("Sethu Kamal", updated.getName());
+        assertEquals("kamal@gmail.com", updated.getEmail());
+        assertEquals("9876543210", updated.getPhone());
+
+        Membership currentMembership = membershipRepository.findByMemberId(member.getId()).orElseThrow();
+        assertEquals(originalExpiry, currentMembership.getExpiryDate());
+    }
+
+    @Test
+    @DisplayName("Update membership plan updates existing membership record with new duration from today")
+    void testUpdateMemberPlan() {
+        Plan monthly = planService.createPlan(new Plan("Monthly", 1, 1000.0));
+        Plan yearly = planService.createPlan(new Plan("Yearly", 12, 9000.0));
+
+        Member member = memberService.registerMember("Sethu", "9876543210", "sethu@gmail.com", monthly.getId());
+
+        UpdateMemberRequest updateReq = new UpdateMemberRequest(
+                "Sethu", "9876543210", "sethu@gmail.com", yearly.getId()
+        );
+
+        memberService.updateMember(member.getId(), updateReq);
+
+        // Verify only 1 membership record exists (no duplicate created)
+        List<Membership> allMemberships = membershipRepository.findAll();
+        assertEquals(1, allMemberships.size());
+
+        Membership updatedMembership = allMemberships.get(0);
+        assertEquals(yearly.getId(), updatedMembership.getPlan().getId());
+        assertEquals(LocalDate.now(), updatedMembership.getStartDate());
+        assertEquals(LocalDate.now().plusMonths(12), updatedMembership.getExpiryDate());
+    }
+
+    @Test
+    @DisplayName("Update phone to another member's phone throws DuplicateResourceException")
+    void testUpdateDuplicatePhoneRejected() {
+        Plan plan = planService.createPlan(new Plan("Monthly", 1, 1000.0));
+        Member memberA = memberService.registerMember("Sethu", "9876543210", "sethu@gmail.com", plan.getId());
+        Member memberB = memberService.registerMember("Kamal", "9876543211", "kamal@gmail.com", plan.getId());
+
+        UpdateMemberRequest updateReq = new UpdateMemberRequest(
+                "Kamal Updated", "9876543210", "kamal@gmail.com", plan.getId()
+        );
+
+        DuplicateResourceException ex = assertThrows(DuplicateResourceException.class, () -> {
+            memberService.updateMember(memberB.getId(), updateReq);
+        });
+
+        assertEquals("Phone number already exists.", ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Update keeping own phone number is allowed")
+    void testUpdateSamePhoneAllowed() {
+        Plan plan = planService.createPlan(new Plan("Monthly", 1, 1000.0));
+        Member member = memberService.registerMember("Sethu", "9876543210", "sethu@gmail.com", plan.getId());
+
+        UpdateMemberRequest updateReq = new UpdateMemberRequest(
+                "Sethu Updated", "9876543210", "newsethu@gmail.com", plan.getId()
+        );
+
+        Member updated = memberService.updateMember(member.getId(), updateReq);
+        assertEquals("Sethu Updated", updated.getName());
+        assertEquals("9876543210", updated.getPhone());
+    }
+
+    @Test
+    @DisplayName("Delete member safely removes member, check-ins, and membership without FK errors")
+    void testDeleteMemberSafely() {
+        Plan plan = planService.createPlan(new Plan("Monthly", 1, 1000.0));
+        Member member = memberService.registerMember("Sethu", "9876543210", "sethu@gmail.com", plan.getId());
+
+        // Create check-in
+        memberService.checkIn(member.getId());
+        assertEquals(1, checkInRepository.findByMemberIdOrderByCheckInTimeDesc(member.getId()).size());
+        assertTrue(membershipRepository.findByMemberId(member.getId()).isPresent());
+
+        // Delete member
+        memberService.deleteMember(member.getId());
+
+        // Verify member, check-ins, and membership are permanently removed
+        assertTrue(memberRepository.findById(member.getId()).isEmpty());
+        assertTrue(membershipRepository.findByMemberId(member.getId()).isEmpty());
+        assertEquals(0, checkInRepository.findByMemberIdOrderByCheckInTimeDesc(member.getId()).size());
+    }
+
+    @Test
+    @DisplayName("Delete non-existent member throws ResourceNotFoundException")
+    void testDeleteNonExistentMember() {
+        assertThrows(ResourceNotFoundException.class, () -> {
+            memberService.deleteMember(9999L);
+        });
     }
 }

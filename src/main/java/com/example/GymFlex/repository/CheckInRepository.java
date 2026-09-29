@@ -20,4 +20,6 @@ public interface CheckInRepository extends JpaRepository<CheckIn, Long> {
     List<CheckIn> findTop10ByOrderByCheckInTimeDesc();
 
     List<CheckIn> findByMemberIdOrderByCheckInTimeDesc(Long memberId);
+
+    void deleteByMemberId(Long memberId);
 }

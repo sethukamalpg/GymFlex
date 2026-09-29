@@ -67,3 +67,43 @@ document.addEventListener('DOMContentLoaded', () => {
 function confirmAction(message) {
     return confirm(message || 'Are you sure you want to proceed with this action?');
 }
+
+/**
+ * Open Delete Member Confirmation Modal
+ */
+function openDeleteModal(memberId, memberName) {
+    const modal = document.getElementById('deleteModal');
+    const form = document.getElementById('deleteForm');
+    const msg = document.getElementById('deleteModalMessage');
+
+    if (modal && form && msg) {
+        form.action = '/members/' + memberId + '/delete';
+        msg.textContent = 'Are you sure you want to delete ' + (memberName || 'this member') + '?';
+        modal.style.display = 'flex';
+    }
+}
+
+/**
+ * Close Delete Member Confirmation Modal
+ */
+function closeDeleteModal() {
+    const modal = document.getElementById('deleteModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Close modal on Escape key or backdrop click
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeDeleteModal();
+    }
+});
+
+document.addEventListener('click', (e) => {
+    const modal = document.getElementById('deleteModal');
+    if (modal && e.target === modal) {
+        closeDeleteModal();
+    }
+});
+

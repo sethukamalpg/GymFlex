@@ -19,6 +19,7 @@ import jakarta.servlet.http.HttpSession;
 
 import com.example.GymFlex.dto.MemberListItemDto;
 import com.example.GymFlex.dto.RegisterMemberRequest;
+import com.example.GymFlex.dto.UpdateMemberRequest;
 import com.example.GymFlex.exception.DuplicateResourceException;
 import com.example.GymFlex.exception.MembershipExpiredException;
 import com.example.GymFlex.exception.ResourceNotFoundException;
@@ -200,9 +201,101 @@ public class PageController {
 
             return "member-details";
         } catch (ResourceNotFoundException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Member not found with id: " + id);
+            redirectAttributes.addFlashAttribute("errorMessage", "Member not found.");
             return "redirect:/members";
         }
+    }
+
+    // 6b. Edit Member Page Form
+    @GetMapping("/members/{id}/edit")
+    public String editMemberForm(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
+        model.addAttribute("activeNav", "members");
+        try {
+            Member member = memberService.getMemberById(id);
+            if (!model.containsAttribute("updateRequest")) {
+                Membership membership = memberService.getMembershipByMemberId(id).orElse(null);
+                Long currentPlanId = (membership != null && membership.getPlan() != null) ? membership.getPlan().getId() : null;
+                UpdateMemberRequest updateRequest = new UpdateMemberRequest(
+                        member.getName(),
+                        member.getPhone(),
+                        member.getEmail(),
+                        currentPlanId
+                );
+                model.addAttribute("updateRequest", updateRequest);
+            }
+            model.addAttribute("memberId", id);
+            model.addAttribute("member", member);
+            model.addAttribute("plans", planService.getAllPlans());
+            return "edit-member";
+        } catch (ResourceNotFoundException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Member not found.");
+            return "redirect:/members";
+        }
+    }
+
+    // 6c. Submit Edit Member
+    @PostMapping("/members/{id}/edit")
+    public String editMemberSubmit(
+            @PathVariable Long id,
+            @Valid @ModelAttribute("updateRequest") UpdateMemberRequest request,
+            BindingResult bindingResult,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("activeNav", "members");
+            model.addAttribute("memberId", id);
+            try {
+                model.addAttribute("member", memberService.getMemberById(id));
+            } catch (Exception ignored) {}
+            model.addAttribute("plans", planService.getAllPlans());
+            return "edit-member";
+        }
+
+        try {
+            memberService.updateMember(id, request);
+            redirectAttributes.addFlashAttribute("successMessage", "Member updated successfully.");
+            return "redirect:/members";
+        } catch (DuplicateResourceException e) {
+            model.addAttribute("activeNav", "members");
+            model.addAttribute("memberId", id);
+            try {
+                model.addAttribute("member", memberService.getMemberById(id));
+            } catch (Exception ignored) {}
+            model.addAttribute("plans", planService.getAllPlans());
+            bindingResult.rejectValue("phone", "duplicate", e.getMessage());
+            model.addAttribute("errorMessage", e.getMessage());
+            return "edit-member";
+        } catch (ResourceNotFoundException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Member not found.");
+            return "redirect:/members";
+        } catch (Exception e) {
+            model.addAttribute("activeNav", "members");
+            model.addAttribute("memberId", id);
+            try {
+                model.addAttribute("member", memberService.getMemberById(id));
+            } catch (Exception ignored) {}
+            model.addAttribute("plans", planService.getAllPlans());
+            model.addAttribute("errorMessage", "Unable to update member: " + e.getMessage());
+            return "edit-member";
+        }
+    }
+
+    // 6d. Delete Member Action
+    @PostMapping("/members/{id}/delete")
+    public String deleteMemberSubmit(
+            @PathVariable Long id,
+            RedirectAttributes redirectAttributes) {
+
+        try {
+            memberService.deleteMember(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Member deleted successfully.");
+        } catch (ResourceNotFoundException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Member not found.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Unable to delete member.");
+        }
+        return "redirect:/members";
     }
 
     // 7. Check In Action from UI

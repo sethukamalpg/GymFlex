@@ -20,4 +20,6 @@ public interface MembershipRepository extends JpaRepository<Membership, Long> {
     long countByExpiryDateGreaterThanEqual(LocalDate date);
 
     long countByExpiryDateBetween(LocalDate start, LocalDate end);
+
+    void deleteByMemberId(Long memberId);
 }
