@@ -39,5 +39,5 @@ ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.securit
 
 EXPOSE 8080
 
-# Execute Spring Boot application passing the dynamic Render port and adapting database configuration
-ENTRYPOINT ["sh", "-c", "if [ -n \"$DATABASE_URL\" ] && [ -z \"$SPRING_DATASOURCE_URL\" ]; then export SPRING_DATASOURCE_URL=\"jdbc:${DATABASE_URL}\"; fi; if [ -z \"$SPRING_DATASOURCE_URL\" ]; then unset SPRING_DATASOURCE_URL; unset SPRING_DATASOURCE_USERNAME; unset SPRING_DATASOURCE_PASSWORD; fi; java $JAVA_OPTS -Dserver.port=${PORT} -jar /app/app.jar"]
+# Execute Spring Boot application passing the dynamic Render port
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Dserver.port=${PORT} -jar /app/app.jar"]

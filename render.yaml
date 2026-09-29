@@ -15,15 +15,6 @@ services:
     envVars:
       - key: PORT
         value: 8080
-      # Database Configuration:
-      # - Leave blank to use the built-in zero-config database (instant deployment)
-      # - Or provide external MySQL/PostgreSQL details (e.g., Aiven, TiDB, Railway)
-      - key: SPRING_DATASOURCE_URL
-        sync: false
-      - key: SPRING_DATASOURCE_USERNAME
-        sync: false
-      - key: SPRING_DATASOURCE_PASSWORD
-        sync: false
       # Admin Credentials for GymFlex Dashboard
       - key: GYMFLEX_ADMIN_USERNAME
         value: admin
