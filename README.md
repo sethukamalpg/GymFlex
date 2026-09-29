@@ -8,6 +8,8 @@
 [![Database](https://img.shields.io/badge/Database-H2%20%7C%20PostgreSQL%20%7C%20MySQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](#database-configuration)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/sethukamalpg/GymFlex)
+
 **GymFlex** is a full-stack, enterprise-grade Gym Membership and Attendance Management application built with **Spring Boot** and **Thymeleaf**. Designed with a modern, dark-neon glassmorphic UI, GymFlex provides gym owners, administrators, and fitness centers with an intuitive, unified platform to track member subscriptions, monitor real-time daily check-ins, automate renewal workflows, and preemptively flag expiring memberships.
 
 ---
@@ -221,17 +223,23 @@ Open [http://localhost:8080](http://localhost:8080) in your browser.
 
 GymFlex includes a native `render.yaml` Blueprint for 1-click cloud deployment.
 
-### Steps to Deploy:
-1. Fork or push this repository to your GitHub account.
-2. Sign in to [Render](https://render.com/).
-3. Navigate to **Blueprints** > **New Blueprint Instance**.
-4. Connect your `GymFlex` repository.
-5. Render will automatically detect `render.yaml` and configure:
-   - **Environment**: Docker
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/sethukamalpg/GymFlex)
+
+### Option A: 1-Click Instant Blueprint Deploy
+1. Click the **Deploy to Render** button above or open:
+   👉 **[https://render.com/deploy?repo=https://github.com/sethukamalpg/GymFlex](https://render.com/deploy?repo=https://github.com/sethukamalpg/GymFlex)**
+2. Sign in to your [Render Dashboard](https://dashboard.render.com/).
+3. Render reads `render.yaml` automatically and configures:
+   - **Service Name**: `gymflex`
+   - **Runtime**: Docker (using multi-stage [`Dockerfile`](./Dockerfile))
    - **Port**: Dynamically bound via `$PORT`
-   - **JVM Options**: Container-optimized RAM management (`-XX:MaxRAMPercentage=75.0`)
-   - **Database**: Runs instantly on zero-config fallback, or connects to external PostgreSQL/MySQL when environment variables are supplied.
-6. Click **Apply** to launch!
+   - **Admin Credentials**: `admin` / `admin123` (or customize them in the Environment Variables table)
+   - **Auto-Deploy**: Enabled on branch `main`
+4. Click **Apply** to launch your live instance.
+
+### Option B: Automatic Continuous Deployment (If already deployed)
+- Whenever new code is pushed to `origin/main`, Render detects the commit automatically and triggers a fresh build and zero-downtime deployment.
+- You can monitor the deployment progress live under **Events** or **Logs** in your Render Dashboard.
 
 ---
 
