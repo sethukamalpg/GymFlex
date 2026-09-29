@@ -246,6 +246,8 @@ GymFlex provides a comprehensive RESTful API for integrations with mobile applic
 | `POST` | `/api/members` | Register a new gym member with a plan |
 | `GET` | `/api/members` | Retrieve all members |
 | `GET` | `/api/members/{memberId}` | Get details of a specific member |
+| `PUT` | `/api/members/{memberId}` | Update member personal details and membership plan |
+| `DELETE` | `/api/members/{memberId}` | Safely delete a member, check-ins, and membership |
 | `PUT` | `/api/members/{memberId}/renew` | Renew membership for an existing member |
 | `POST` | `/api/members/{memberId}/checkin` | Record member check-in |
 | `GET` | `/api/members/expiring` | Get all memberships expiring within 7 days |
@@ -304,6 +306,7 @@ GymFlex provides a comprehensive RESTful API for integrations with mobile applic
 | `/dashboard` | **Analytics Dashboard** | Overview of member counts, active subscriptions, recent check-ins |
 | `/members` | **Members Directory** | Comprehensive list of all registered members with quick actions |
 | `/members/add` | **New Member Onboarding** | Form to register a member and assign an initial plan |
+| `/members/{id}/edit` | **Edit Member Profile** | Modify member personal details, phone, email, and plan tier |
 | `/members/{id}` | **Member Details** | Member status, membership duration, one-click renew, and check-in history |
 | `/attendance` | **Attendance Center** | Daily check-in desk, monthly attendance counters, and activity feed |
 | `/members/expiring`| **Expiring Watchlist** | Proactive warning list of memberships expiring in the next 7 days |
